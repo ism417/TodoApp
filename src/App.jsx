@@ -8,10 +8,26 @@ function App(){
   const [title, setTitle] = useState('');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(localStorage.getItem('token'));
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    // Check for token in URL (after OAuth redirect)
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenFromUrl = urlParams.get('token');
+    
+    if (tokenFromUrl) {
+      localStorage.setItem('token', tokenFromUrl);
+      setToken(tokenFromUrl);
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    if (token) {
+      checkAuth();
+    } else {
+      setLoading(false);
+    }
+  }, [token]);
 
   useEffect(() => {
     if (user) {
@@ -22,14 +38,21 @@ function App(){
   async function checkAuth() {
     try {
       const res = await fetch('https://todo-api-henna.vercel.app/api/auth/user', {
-        credentials: 'include'
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       if (res.ok) {
         const userData = await res.json();
         setUser(userData);
+      } else {
+        localStorage.removeItem('token');
+        setToken(null);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
+      localStorage.removeItem('token');
+      setToken(null);
     } finally {
       setLoading(false);
     }
@@ -39,53 +62,68 @@ function App(){
     window.location.href = 'https://todo-api-henna.vercel.app/api/auth/google';
   }
 
-  async function logout() {
-    await fetch('https://todo-api-henna.vercel.app/api/auth/logout', {
-      credentials: 'include'
-    });
+  function logout() {
+    localStorage.removeItem('token');
+    setToken(null);
     setUser(null);
     setTodos([]);
   }
 
   async function fetchTodos() {
     const res = await fetch(API_URL, {
-      credentials: 'include'
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     });
     if (res.ok){
       const data = await res.json();
       setTodos(data);
     }
   }
+
   async function addTodo(e){
     e.preventDefault();
     if (!title.trim()) return;
-    await fetch(API_URL, {
+    const res = await fetch(API_URL, {
       method: 'POST',
-      headers: { 'content-Type': 'application/json'},
-      body: JSON.stringify({ title }),
-      credentials: 'include'
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ title })
     });
     if (res.ok){
       setTitle('');
       fetchTodos();
     }
   }
+
   async function toggleComplete(todo) {
     await fetch(`${API_URL}/${todo._id}`, {
       method: 'PUT',
-      headers: { 'content-Type': 'application/json'},
-      body: JSON.stringify({ completed: !todo.completed }),
-      credentials: 'include'
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ completed: !todo.completed })
     });
     fetchTodos();
   }
+
   async function deleteTodo(id) {
-    await fetch(`${API_URL}/${id}`, { method: 'DELETE', credentials: 'include'});
+    await fetch(`${API_URL}/${id}`, { 
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     fetchTodos();
   }
+
   if (loading) {
     return <div className='app-container'>Loading...</div>;
   }
+
   if (!user) {
     return (
       <div className='app-container'>
@@ -95,8 +133,9 @@ function App(){
       </div>
     );
   }
+
   return (
-    <div className='app-container'  >
+    <div className='app-container'>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h1>My Todo List</h1>
         <div>
@@ -126,10 +165,7 @@ function App(){
             >
               {todo.title}
             </span>
-            <button
-              
-              onClick={() => deleteTodo(todo._id)}
-            >
+            <button onClick={() => deleteTodo(todo._id)}>
               ✖
             </button>
           </li>
@@ -138,4 +174,5 @@ function App(){
     </div>
   );
 }
+
 export default App
