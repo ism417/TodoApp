@@ -127,23 +127,21 @@ function App(){
   if (!user) {
     return (
       <div className='app-container'>
-        <h1>My Todo List</h1>
-        <p>Please sign in to manage your todos</p>
-        <button onClick={login}>Sign in with Google</button>
+        <div style={{ display: 'grid'}}>
+          <h1>My Todo List</h1>
+          <p style={{ color: '#000', margin: '20px'}}>Please sign in to manage your todos</p>
+          <button onClick={login}>Sign in with Google</button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className='app-container'>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+      <div style={{ display: 'grid', alignItems: 'center', justifyItems:'center' , marginBottom: '20px' }}> 
         <h1>My Todo List</h1>
-        <div>
-          <span>Welcome, {user.name}!</span>
-          <button onClick={logout} style={{ marginLeft: '10px' }}>Logout</button>
-        </div>
+        <span style={{ color: '#000'}} > Welcome, {user.name}!</span>
       </div>
-
       <form onSubmit={addTodo}>
         <input
           value={title}
@@ -171,6 +169,9 @@ function App(){
           </li>
         ))}
       </ul>
+      <div style={{ display: 'grid', alignItems: 'center', justifyItems:'center' , marginTop: '50px', marginBottom: '1px' }}> 
+        <button onClick={logout} >Logout</button>
+      </div>
     </div>
   );
 }
