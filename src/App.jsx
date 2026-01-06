@@ -160,6 +160,7 @@ function App(){
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Enter a new todo..."
+          className='text-black'
         />
         <button type="submit">Add</button>
       </form>
