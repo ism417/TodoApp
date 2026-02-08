@@ -141,7 +141,7 @@ function App(){
             rel="noopener noreferrer"
             className="text-black text-xs hover:text-gray-700 transition-colors"
           >
-            Built by Your Ismail El Abbassi
+            Built by Ismail El Abbassi
           </a>
         </footer>
       </>
